@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schemalist>
+    <schema path="/org/gnome/shell/extensions/window-title-is-back/" id="org.gnome.shell.extensions.window-title-is-back">
+
+    <key type="b" name="show-icon">
+        <default>true</default>
+        <summary>Show the focused app icon</summary>
+    </key>
+
+    <key type="b" name="show-app">
+        <default>true</default>
+        <summary>Show the focused app name</summary>
+    </key>
+
+    <key type="b" name="show-title">
+        <default>true</default>
+        <summary>Show the focused window title</summary>
+    </key>
+
+    </schema>
+</schemalist>
