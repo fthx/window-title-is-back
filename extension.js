@@ -77,7 +77,7 @@ export default class WindowTitleIsBackExtension extends Extension {
     }
 
     _minimize_focused_window() {
-        if (this._focused_window && this._focused_window.can_minimize() && !Main.overview.visible) {
+        if (this._settings.get_boolean('click-to-minimize') && this._focused_window && this._focused_window.can_minimize() && !Main.overview.visible) {
             this._focused_window.minimize();
         }
     }
