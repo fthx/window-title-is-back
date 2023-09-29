@@ -18,5 +18,10 @@
         <summary>Show the focused window title</summary>
     </key>
 
+    <key type="b" name="click-to-minimize">
+        <default>true</default>
+        <summary>Click on focused window title to minimize</summary>
+    </key>
+
     </schema>
 </schemalist>
