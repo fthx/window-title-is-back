@@ -47,7 +47,7 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         this._focused_window = global.display.get_focus_window();
 
-        if (this._focused_window) {
+        if (this._focused_window && !this._focused_window.skip_taskbar) {
             this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
             if (this._focused_app) {
                 this._focused_window_button._icon.set_gicon(this._focused_app.get_icon());
@@ -69,7 +69,7 @@ export default class WindowTitleIsBackExtension extends Extension {
     }
 
     _on_focused_window_title_changed() {
-        if (this._focused_window && this._focused_window.get_title()) {
+        if (this._focused_window && !this._focused_window.skip_taskbar && this._focused_window.get_title()) {
             this._focused_window_button._title.set_text(this._focused_window.get_title());
         } else {
             this._focused_window_button._title.set_text("");
