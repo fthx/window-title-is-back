@@ -21,9 +21,13 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
         this._indicator = new St.BoxLayout({style_class: 'panel-button'});
 
-        this._icon = new St.Icon({});
+        this._icon = new St.Icon({style_class: 'app-menu-icon'});
+        this._icon.set_icon_size(20);
         this._icon.set_fallback_gicon(null);
         this._indicator.add_child(this._icon);
+
+        this._icon_padding = new St.Label({y_align: Clutter.ActorAlign.CENTER});
+        this._indicator.add_child(this._icon_padding);
 
         this._app = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._indicator.add_child(this._app);
@@ -50,6 +54,11 @@ export default class WindowTitleIsBackExtension extends Extension {
         if (this._focused_window && !this._focused_window.skip_taskbar) {
             this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
             if (this._focused_app) {
+                this._desaturate_effect = new Clutter.DesaturateEffect();
+                this._desaturate_effect.enabled = true;
+
+                this._focused_window_button.add_effect(this._desaturate_effect);
+
                 this._focused_window_button._icon.set_gicon(this._focused_app.get_icon());
                 this._focused_window_button._app.set_text(this._focused_app.get_name() + this._label_padding);
             } else {
@@ -87,7 +96,13 @@ export default class WindowTitleIsBackExtension extends Extension {
         this._focused_window_button._app.visible = this._settings.get_boolean('show-app');
         this._focused_window_button._title.visible = this._settings.get_boolean('show-title');
 
-        if (this._settings.get_boolean('show-title')) {
+        if (this._settings.get_boolean('show-icon')) {
+            this._focused_window_button._icon_padding.set_text('   ');
+        } else {
+            this._focused_window_button._icon_padding.set_text('');
+        }
+
+        if (this._settings.get_boolean('show-title') && this._settings.get_boolean('show-icon')) {
             this._label_padding = '  —  ';
         } else {
             this._label_padding = '';
