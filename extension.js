@@ -19,6 +19,9 @@ class WindowTitleIndicator extends PanelMenu.Button {
     _init() {
         super._init();
 
+        this._desaturate_effect = new Clutter.DesaturateEffect();
+        this.add_effect(this._desaturate_effect);
+
         this._indicator = new St.BoxLayout({style_class: 'panel-button'});
 
         this._icon = new St.Icon({style_class: 'app-menu-icon'});
@@ -54,11 +57,6 @@ export default class WindowTitleIsBackExtension extends Extension {
         if (this._focused_window && !this._focused_window.skip_taskbar) {
             this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
             if (this._focused_app) {
-                this._desaturate_effect = new Clutter.DesaturateEffect();
-                this._desaturate_effect.enabled = true;
-
-                this._focused_window_button.add_effect(this._desaturate_effect);
-
                 this._focused_window_button._icon.set_gicon(this._focused_app.get_icon());
                 this._focused_window_button._app.set_text(this._focused_app.get_name() + this._label_padding);
             } else {
