@@ -10,8 +10,10 @@ import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
+import {AppMenu} from 'resource:///org/gnome/shell/ui/appMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 
@@ -19,6 +21,11 @@ const WindowTitleIndicator = GObject.registerClass(
 class WindowTitleIndicator extends PanelMenu.Button {
     _init() {
         super._init();
+
+        this._menu_manager = Main.panel.menuManager;
+        this._menu = new AppMenu(this);
+        this.setMenu(this._menu);
+        this._menu_manager.addMenu(this._menu);
 
         this._desaturate_effect = new Clutter.DesaturateEffect();
         this.add_effect(this._desaturate_effect);
@@ -72,6 +79,8 @@ export default class WindowTitleIsBackExtension extends Extension {
                 } else {
                     this._focused_window_button._app_padding.set_text('');
                 }
+
+                this._focused_window_button.menu.setApp(this._focused_app);
             } else {
                 this._focused_window_button._icon.set_icon_name('applications-system-symbolic');
                 this._focused_window_button._app.set_text('');
@@ -95,12 +104,6 @@ export default class WindowTitleIsBackExtension extends Extension {
             this._focused_window_button._title.set_text(this._focused_window.get_title());
         } else {
             this._focused_window_button._title.set_text("");
-        }
-    }
-
-    _minimize_focused_window() {
-        if (this._settings.get_boolean('click-to-minimize') && this._focused_window && this._focused_window.can_minimize() && !Main.overview.visible) {
-            this._focused_window.minimize();
         }
     }
 
@@ -136,15 +139,14 @@ export default class WindowTitleIsBackExtension extends Extension {
         Main.panel.addToStatusArea('focused-window-indicator', this._focused_window_button, -1, 'left');
 
         this._focused_window_changed = global.display.connect('notify::focus-window', this._on_focused_window_changed.bind(this));
-        this._focused_window_button_pressed = this._focused_window_button.connect('button-release-event', this._minimize_focused_window.bind(this));
+
+        this._overview_showing = Main.overview.connect('showing', this._on_focused_window_changed.bind(this));
+        this._overview_hiding = Main.overview.connect('hiding', this._on_focused_window_changed.bind(this));
+
+        this._icon_theme_changed = St.TextureCache.get_default().connect('icon-theme-changed', this._on_focused_window_changed.bind(this));
     }
 
     disable() {
-        if (this._focused_window_button_pressed) {
-            this._focused_window_button.disconnect(this._focused_window_button_pressed);
-        }
-        this._focused_window_button_pressed = null;
-
         if (this._focused_window && this._focused_window_title_changed) {
             this._focused_window.disconnect(this._focused_window_title_changed);
         }
@@ -154,6 +156,21 @@ export default class WindowTitleIsBackExtension extends Extension {
             global.display.disconnect(this._focused_window_changed);
         }
         this._focused_window_changed = null;
+
+        if (this._overview_showing) {
+            Main.overview.disconnect(this._overview_showing);
+        }
+        this._overview_showing = null;
+
+        if (this._overview_hiding) {
+            Main.overview.disconnect(this._overview_hiding);
+        }
+        this._overview_hiding = null;
+
+        if (this._icon_theme_changed) {
+            St.TextureCache.get_default().disconnect(this._icon_theme_changed);
+        }
+        this._icon_theme_changed =  null;
 
         this._focused_window_button.destroy();
         this._focused_window_button = null;

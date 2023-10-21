@@ -55,11 +55,5 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         });
         group_settings.add(row_size);
         window._settings.bind('icon-size', row_size, 'value', Gio.SettingsBindFlags.DEFAULT);
-
-        const row_minimize = new Adw.SwitchRow({
-            title: 'Click to minimize',
-        });
-        group_settings.add(row_minimize);
-        window._settings.bind('click-to-minimize', row_minimize, 'active', Gio.SettingsBindFlags.DEFAULT);
     }
 }
