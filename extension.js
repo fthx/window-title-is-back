@@ -6,6 +6,7 @@
 
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
@@ -25,7 +26,6 @@ class WindowTitleIndicator extends PanelMenu.Button {
         this._indicator = new St.BoxLayout({style_class: 'panel-button'});
 
         this._icon = new St.Icon({style_class: 'app-menu-icon'});
-        this._icon.set_icon_size(20);
         this._icon.set_fallback_gicon(null);
         this._indicator.add_child(this._icon);
 
@@ -34,6 +34,9 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
         this._app = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._indicator.add_child(this._app);
+
+        this._app_padding = new St.Label({y_align: Clutter.ActorAlign.CENTER});
+        this._indicator.add_child(this._app_padding);
 
         this._title = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._indicator.add_child(this._title);
@@ -54,18 +57,30 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         this._focused_window = global.display.get_focus_window();
 
+        if (this._focused_window && (this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
+            return;
+        }
+
         if (this._focused_window && !this._focused_window.skip_taskbar) {
             this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
             if (this._focused_app) {
                 this._focused_window_button._icon.set_gicon(this._focused_app.get_icon());
-                this._focused_window_button._app.set_text(this._focused_app.get_name() + this._label_padding);
+                this._focused_window_button._app.set_text(this._focused_app.get_name());
+
+                if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
+                    this._focused_window_button._app_padding.set_text('  —  ');
+                } else {
+                    this._focused_window_button._app_padding.set_text('');
+                }
             } else {
                 this._focused_window_button._icon.set_icon_name('applications-system-symbolic');
                 this._focused_window_button._app.set_text('');
+                this._focused_window_button._app_padding.set_text('');
             }
         } else {
             this._focused_window_button._icon.set_gicon(null);
             this._focused_window_button._app.set_text('');
+            this._focused_window_button._app_padding.set_text('');
         }
 
         this._on_focused_window_title_changed();
@@ -100,11 +115,13 @@ export default class WindowTitleIsBackExtension extends Extension {
             this._focused_window_button._icon_padding.set_text('');
         }
 
-        if (this._settings.get_boolean('show-title') && this._settings.get_boolean('show-icon')) {
-            this._label_padding = '  —  ';
+        if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
+            this._focused_window_button._app_padding.set_text('  —  ');
         } else {
-            this._label_padding = '';
+            this._focused_window_button._app_padding.set_text('');
         }
+
+        this._focused_window_button._icon.set_icon_size(this._settings.get_int('icon-size'));
 
         this._on_focused_window_changed();
     }
