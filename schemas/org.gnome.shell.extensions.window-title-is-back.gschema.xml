@@ -18,6 +18,11 @@
         <summary>Show the focused window title</summary>
     </key>
 
+    <key type="b" name="colored-icon">
+        <default>false</default>
+        <summary>Colored icon</summary>
+    </key>
+
     <key type="i" name="icon-size">
         <default>16</default>
         <summary>App icon size</summary>
