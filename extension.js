@@ -28,11 +28,10 @@ class WindowTitleIndicator extends PanelMenu.Button {
         this._menu_manager.addMenu(this._menu);
 
         this._desaturate_effect = new Clutter.DesaturateEffect();
-        this.add_effect(this._desaturate_effect);
 
         this._indicator = new St.BoxLayout({style_class: 'panel-button'});
 
-        this._icon = new St.Icon({style_class: 'app-menu-icon'});
+        this._icon = new St.Icon({});
         this._icon.set_fallback_gicon(null);
         this._indicator.add_child(this._icon);
 
@@ -71,25 +70,25 @@ export default class WindowTitleIsBackExtension extends Extension {
         if (this._focused_window && !this._focused_window.skip_taskbar) {
             this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
             if (this._focused_app) {
-                this._focused_window_button._icon.set_gicon(this._focused_app.get_icon());
-                this._focused_window_button._app.set_text(this._focused_app.get_name());
+                this._indicator._icon.set_gicon(this._focused_app.get_icon());
+                this._indicator._app.set_text(this._focused_app.get_name());
 
                 if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
-                    this._focused_window_button._app_padding.set_text('  —  ');
+                    this._indicator._app_padding.set_text('   —   ');
                 } else {
-                    this._focused_window_button._app_padding.set_text('');
+                    this._indicator._app_padding.set_text('');
                 }
 
-                this._focused_window_button.menu.setApp(this._focused_app);
+                this._indicator.menu.setApp(this._focused_app);
             } else {
-                this._focused_window_button._icon.set_icon_name('applications-system-symbolic');
-                this._focused_window_button._app.set_text('');
-                this._focused_window_button._app_padding.set_text('');
+                this._indicator._icon.set_icon_name('applications-system-symbolic');
+                this._indicator._app.set_text('');
+                this._indicator._app_padding.set_text('');
             }
         } else {
-            this._focused_window_button._icon.set_gicon(null);
-            this._focused_window_button._app.set_text('');
-            this._focused_window_button._app_padding.set_text('');
+            this._indicator._icon.set_gicon(null);
+            this._indicator._app.set_text('');
+            this._indicator._app_padding.set_text('');
         }
 
         this._on_focused_window_title_changed();
@@ -101,42 +100,50 @@ export default class WindowTitleIsBackExtension extends Extension {
 
     _on_focused_window_title_changed() {
         if (this._focused_window && !this._focused_window.skip_taskbar && this._focused_window.get_title()) {
-            this._focused_window_button._title.set_text(this._focused_window.get_title());
+            this._indicator._title.set_text(this._focused_window.get_title());
         } else {
-            this._focused_window_button._title.set_text("");
+            this._indicator._title.set_text('');
         }
     }
 
     _on_settings_changed() {
-        this._focused_window_button._icon.visible = this._settings.get_boolean('show-icon');
-        this._focused_window_button._app.visible = this._settings.get_boolean('show-app');
-        this._focused_window_button._title.visible = this._settings.get_boolean('show-title');
+        this._indicator._icon.visible = this._settings.get_boolean('show-icon');
+        this._indicator._app.visible = this._settings.get_boolean('show-app');
+        this._indicator._title.visible = this._settings.get_boolean('show-title');
 
         if (this._settings.get_boolean('show-icon')) {
-            this._focused_window_button._icon_padding.set_text('   ');
+            this._indicator._icon_padding.set_text('   ');
         } else {
-            this._focused_window_button._icon_padding.set_text('');
+            this._indicator._icon_padding.set_text('');
         }
 
         if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
-            this._focused_window_button._app_padding.set_text('  —  ');
+            this._indicator._app_padding.set_text('   —   ');
         } else {
-            this._focused_window_button._app_padding.set_text('');
+            this._indicator._app_padding.set_text('');
         }
 
-        this._focused_window_button._icon.set_icon_size(this._settings.get_int('icon-size'));
+        if (this._settings.get_boolean('colored-icon')) {
+            this._indicator._icon.set_style_class_name('');
+            this._indicator.remove_effect(this._indicator._desaturate_effect);
+        } else {
+            this._indicator._icon.set_style_class_name('app-menu-icon');
+            this._indicator.add_effect(this._indicator._desaturate_effect);
+        }
+
+        this._indicator._icon.set_icon_size(this._settings.get_int('icon-size'));
 
         this._on_focused_window_changed();
     }
 
     enable() {
-        this._focused_window_button = new WindowTitleIndicator();
+        this._indicator = new WindowTitleIndicator();
 
         this._settings = this.getSettings();
         this._on_settings_changed();
         this._settings_changed = this._settings.connect('changed', this._on_settings_changed.bind(this));
 
-        Main.panel.addToStatusArea('focused-window-indicator', this._focused_window_button, -1, 'left');
+        Main.panel.addToStatusArea('focused-window-indicator', this._indicator, -1, 'left');
 
         this._focused_window_changed = global.display.connect('notify::focus-window', this._on_focused_window_changed.bind(this));
 
@@ -172,8 +179,8 @@ export default class WindowTitleIsBackExtension extends Extension {
         }
         this._icon_theme_changed =  null;
 
-        this._focused_window_button.destroy();
-        this._focused_window_button = null;
+        this._indicator.destroy();
+        this._indicator = null;
 
         if (this._settings_changed) {
             this._settings.disconnect(this._settings_changed);

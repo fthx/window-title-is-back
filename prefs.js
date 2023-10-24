@@ -27,13 +27,13 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         window._settings.bind('show-icon', row_icon, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const row_app = new Adw.SwitchRow({
-            title: 'Show window app',
+            title: 'Show app',
         });
         group_items.add(row_app);
         window._settings.bind('show-app', row_app, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const row_title = new Adw.SwitchRow({
-            title: 'Show window title',
+            title: 'Show title',
         });
         group_items.add(row_title);
         window._settings.bind('show-title', row_title, 'active', Gio.SettingsBindFlags.DEFAULT);
@@ -42,6 +42,12 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
             title: 'Settings',
         });
         page.add(group_settings);
+
+        const row_color = new Adw.SwitchRow({
+            title: 'Colored icon',
+        });
+        group_settings.add(row_color);
+        window._settings.bind('colored-icon', row_color, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const adjustment = new Gtk.Adjustment({
             lower: 12,
