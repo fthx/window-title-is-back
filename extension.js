@@ -1,7 +1,6 @@
 //    Window Title Is Back
 //    GNOME Shell extension
 //    @fthx 2023
-//    Puts the app/icon/title of the focused window in the GNOME Shell top panel
 
 
 import Clutter from 'gi://Clutter';
@@ -29,25 +28,25 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
         this._desaturate_effect = new Clutter.DesaturateEffect();
 
-        this._indicator = new St.BoxLayout({style_class: 'panel-button'});
+        this._box = new St.BoxLayout({style_class: 'panel-button'});
 
         this._icon = new St.Icon({});
         this._icon.set_fallback_gicon(null);
-        this._indicator.add_child(this._icon);
+        this._box.add_child(this._icon);
 
         this._icon_padding = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._indicator.add_child(this._icon_padding);
+        this._box.add_child(this._icon_padding);
 
         this._app = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._indicator.add_child(this._app);
+        this._box.add_child(this._app);
 
         this._app_padding = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._indicator.add_child(this._app_padding);
+        this._box.add_child(this._app_padding);
 
         this._title = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._indicator.add_child(this._title);
+        this._box.add_child(this._title);
 
-        this.add_child(this._indicator);
+        this.add_child(this._box);
     }
 });
 
@@ -63,46 +62,37 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         this._focused_window = global.display.get_focus_window();
 
-        if (this._focused_window && (this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
+        if (this._focused_window && this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG) {
             return;
         }
 
         if (this._focused_window && !this._focused_window.skip_taskbar) {
             this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
-            if (this._focused_app) {
-                this._indicator._icon.set_gicon(this._focused_app.get_icon());
-                this._indicator._app.set_text(this._focused_app.get_name());
+            this._set_window_app();
+            this._set_window_title();
 
-                if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
-                    this._indicator._app_padding.set_text('   —   ');
-                } else {
-                    this._indicator._app_padding.set_text('');
-                }
-
-                this._indicator.menu.setApp(this._focused_app);
-            } else {
-                this._indicator._icon.set_icon_name('applications-system-symbolic');
-                this._indicator._app.set_text('');
-                this._indicator._app_padding.set_text('');
-            }
+            this._indicator.show();
         } else {
-            this._indicator._icon.set_gicon(null);
-            this._indicator._app.set_text('');
-            this._indicator._app_padding.set_text('');
+            this._indicator.hide();
         }
 
-        this._on_focused_window_title_changed();
-
         if (this._focused_window) {
-            this._focused_window_title_changed = this._focused_window.connect("notify::title", this._on_focused_window_title_changed.bind(this));
+            this._focused_window_title_changed = this._focused_window.connect('notify::title', this._set_window_title.bind(this));
         }
     }
 
-    _on_focused_window_title_changed() {
-        if (this._focused_window && !this._focused_window.skip_taskbar && this._focused_window.get_title()) {
+    _set_window_app() {
+        if (this._focused_app) {
+            this._indicator._icon.set_gicon(this._focused_app.get_icon());
+            this._indicator._app.set_text(this._focused_app.get_name());
+
+            this._indicator.menu.setApp(this._focused_app);
+        }
+    }
+
+    _set_window_title() {
+        if (this._focused_window) {
             this._indicator._title.set_text(this._focused_window.get_title());
-        } else {
-            this._indicator._title.set_text('');
         }
     }
 
@@ -146,10 +136,6 @@ export default class WindowTitleIsBackExtension extends Extension {
         Main.panel.addToStatusArea('focused-window-indicator', this._indicator, -1, 'left');
 
         this._focused_window_changed = global.display.connect('notify::focus-window', this._on_focused_window_changed.bind(this));
-
-        this._overview_showing = Main.overview.connect('showing', this._on_focused_window_changed.bind(this));
-        this._overview_hiding = Main.overview.connect('hiding', this._on_focused_window_changed.bind(this));
-
         this._icon_theme_changed = St.TextureCache.get_default().connect('icon-theme-changed', this._on_focused_window_changed.bind(this));
     }
 
@@ -163,16 +149,6 @@ export default class WindowTitleIsBackExtension extends Extension {
             global.display.disconnect(this._focused_window_changed);
         }
         this._focused_window_changed = null;
-
-        if (this._overview_showing) {
-            Main.overview.disconnect(this._overview_showing);
-        }
-        this._overview_showing = null;
-
-        if (this._overview_hiding) {
-            Main.overview.disconnect(this._overview_hiding);
-        }
-        this._overview_hiding = null;
 
         if (this._icon_theme_changed) {
             St.TextureCache.get_default().disconnect(this._icon_theme_changed);
