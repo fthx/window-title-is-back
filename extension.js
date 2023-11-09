@@ -58,7 +58,11 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         this._focused_window = global.display.get_focus_window();
 
-        if (this._focused_window && (this._focused_window.get_window_type() == Meta.WindowType.NORMAL) && !this._focused_window.skip_taskbar) {
+        if (this._focused_window && (this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
+            return;
+        }
+
+        if (this._focused_window && !this._focused_window.skip_taskbar) {
             this._set_window_app();
             this._set_window_title();
 
@@ -66,7 +70,7 @@ export default class WindowTitleIsBackExtension extends Extension {
 
             this._focused_window.connectObject('notify::title', this._set_window_title.bind(this), this._focused_window);
         } else {
-            if (!this._focused_window && !this._indicator._menu.isOpen) {
+            if ((!this._focused_window && !this._indicator._menu.isOpen) || (this._focused_window && this._focused_window.skip_taskbar)) {
                 this._indicator.hide();
             }
         }
