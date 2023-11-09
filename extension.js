@@ -56,32 +56,25 @@ export default class WindowTitleIsBackExtension extends Extension {
             return;
         }
 
-        if (this._focused_window && this._focused_window_title_changed) {
-            this._focused_window.disconnect(this._focused_window_title_changed);
-        }
-
         this._focused_window = global.display.get_focus_window();
 
-        if (this._focused_window && this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG) {
-            return;
-        }
-
-        if (this._focused_window && !this._focused_window.skip_taskbar) {
-            this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
+        if (this._focused_window && (this._focused_window.get_window_type() == Meta.WindowType.NORMAL) && !this._focused_window.skip_taskbar) {
             this._set_window_app();
             this._set_window_title();
 
             this._indicator.show();
-        } else {
-            this._indicator.hide();
-        }
 
-        if (this._focused_window) {
-            this._focused_window_title_changed = this._focused_window.connect('notify::title', this._set_window_title.bind(this));
+            this._focused_window.connectObject('notify::title', this._set_window_title.bind(this), this._focused_window);
+        } else {
+            if (!this._focused_window && !this._indicator._menu.isOpen) {
+                this._indicator.hide();
+            }
         }
     }
 
     _set_window_app() {
+        this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
+
         if (this._focused_app) {
             this._indicator._icon.set_gicon(this._focused_app.get_icon());
             this._indicator._app.set_text(this._focused_app.get_name());
@@ -140,11 +133,6 @@ export default class WindowTitleIsBackExtension extends Extension {
     }
 
     disable() {
-        if (this._focused_window && this._focused_window_title_changed) {
-            this._focused_window.disconnect(this._focused_window_title_changed);
-        }
-        this._focused_window_title_changed = null;
-
         if (this._focused_window_changed) {
             global.display.disconnect(this._focused_window_changed);
         }
