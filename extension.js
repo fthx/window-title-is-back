@@ -21,10 +21,9 @@ class WindowTitleIndicator extends PanelMenu.Button {
     _init() {
         super._init();
 
-        this._menu_manager = Main.panel.menuManager;
         this._menu = new AppMenu(this);
         this.setMenu(this._menu);
-        this._menu_manager.addMenu(this._menu);
+        Main.panel.menuManager.addMenu(this._menu);
 
         this._desaturate_effect = new Clutter.DesaturateEffect();
 
@@ -46,7 +45,7 @@ class WindowTitleIndicator extends PanelMenu.Button {
         this._title = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._box.add_child(this._title);
 
-        this.add_child(this._box);
+        this.add_actor(this._box);
     }
 });
 
@@ -68,7 +67,7 @@ export default class WindowTitleIsBackExtension extends Extension {
 
             this._indicator.show();
 
-            this._focused_window.connectObject('notify::title', this._set_window_title.bind(this), this._focused_window);
+            this._focused_window.connectObject('notify::title', this._set_window_title.bind(this), this);
         } else {
             if ((!this._focused_window && !this._indicator._menu.isOpen) || (this._focused_window && this._focused_window.skip_taskbar)) {
                 this._indicator.hide();
@@ -128,32 +127,28 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         this._settings = this.getSettings();
         this._on_settings_changed();
-        this._settings_changed = this._settings.connect('changed', this._on_settings_changed.bind(this));
+        this._settings.connectObject('changed', this._on_settings_changed.bind(this), this);
 
         Main.panel.addToStatusArea('focused-window-indicator', this._indicator, -1, 'left');
 
-        this._focused_window_changed = global.display.connect('notify::focus-window', this._on_focused_window_changed.bind(this));
-        this._icon_theme_changed = St.TextureCache.get_default().connect('icon-theme-changed', this._on_focused_window_changed.bind(this));
+        global.display.connectObject('notify::focus-window', this._on_focused_window_changed.bind(this), this);
+        St.TextureCache.get_default().connectObject('icon-theme-changed', this._on_focused_window_changed.bind(this), this);
     }
 
     disable() {
-        if (this._focused_window_changed) {
-            global.display.disconnect(this._focused_window_changed);
-        }
-        this._focused_window_changed = null;
-
-        if (this._icon_theme_changed) {
-            St.TextureCache.get_default().disconnect(this._icon_theme_changed);
-        }
-        this._icon_theme_changed =  null;
-
-        this._indicator.destroy();
-        this._indicator = null;
-
-        if (this._settings_changed) {
-            this._settings.disconnect(this._settings_changed);
-        }
+        this._settings.disconnectObject(this);
         this._settings_changed = null;
         this._settings = null;
+
+        if (this._focused_window) {
+            this._focused_window.disconnectObject(this);
+        }
+        global.display.disconnectObject(this);
+        St.TextureCache.get_default().disconnectObject(this);
+
+        Main.panel.menuManager.removeMenu(this._indicator.menu);
+        this._indicator.menu = null;
+        this._indicator.destroy();
+        this._indicator = null;
     }
 }
