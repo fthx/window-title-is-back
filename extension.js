@@ -56,6 +56,9 @@ export default class WindowTitleIsBackExtension extends Extension {
             return;
         }
 
+        if (this._focused_window) {
+            this._focused_window.disconnectObject(this);
+        }
         this._focused_window = global.display.get_focus_window();
 
         if (this._focused_window && (this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
