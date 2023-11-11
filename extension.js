@@ -23,6 +23,7 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
         this._menu = new AppMenu(this);
         this.setMenu(this._menu);
+        this._menu.setSourceAlignment(0.2);
         Main.panel.menuManager.addMenu(this._menu);
 
         this._desaturate_effect = new Clutter.DesaturateEffect();
