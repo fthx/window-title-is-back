@@ -46,7 +46,7 @@ class WindowTitleIndicator extends PanelMenu.Button {
         this._title = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._box.add_child(this._title);
 
-        this.add_actor(this._box);
+        this.add_child(this._box);
     }
 });
 
@@ -74,7 +74,7 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         if ((!this._focused_window && !this._indicator._menu.isOpen) ||
                 (this._focused_window && this._focused_window.skip_taskbar &&
-                    !(this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG))) {
+                    this._focused_window.get_window_type() != Meta.WindowType.MODAL_DIALOG)) {
             this._indicator.hide();
         }
     }
@@ -141,12 +141,14 @@ export default class WindowTitleIsBackExtension extends Extension {
 
     disable() {
         this._settings.disconnectObject(this);
-        this._settings_changed = null;
         this._settings = null;
 
         if (this._focused_window) {
             this._focused_window.disconnectObject(this);
         }
+        this._focused_window = null;
+        this._focused_app = null;
+
         global.display.disconnectObject(this);
         St.TextureCache.get_default().disconnectObject(this);
 
