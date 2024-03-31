@@ -28,5 +28,10 @@
         <summary>App icon size</summary>
     </key>
 
+    <key type="i" name="ease-time">
+        <default>150</default>
+        <summary>Fade in/out time</summary>
+    </key>
+
     </schema>
 </schemalist>
