@@ -49,7 +49,7 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         group_settings.add(row_color);
         window._settings.bind('colored-icon', row_color, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-        const adjustment = new Gtk.Adjustment({
+        const adjustment_size = new Gtk.Adjustment({
             lower: 12,
             upper: 26,
             step_increment: 1,
@@ -57,9 +57,22 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
 
         const row_size = new Adw.SpinRow({
             title: 'Icon size',
-            adjustment,
+            adjustment: adjustment_size,
         });
         group_settings.add(row_size);
         window._settings.bind('icon-size', row_size, 'value', Gio.SettingsBindFlags.DEFAULT);
+
+        const adjustment_time = new Gtk.Adjustment({
+            lower: 0,
+            upper: 300,
+            step_increment: 10,
+        });
+
+        const row_time = new Adw.SpinRow({
+            title: 'Fade in/out time',
+            adjustment: adjustment_time,
+        });
+        group_settings.add(row_time);
+        window._settings.bind('ease-time', row_time, 'value', Gio.SettingsBindFlags.DEFAULT);
     }
 }
