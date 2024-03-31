@@ -132,6 +132,9 @@ class WindowTitleIndicator extends PanelMenu.Button {
     }
 
     _destroy() {
+        global.display.disconnectObject(this);
+        St.TextureCache.get_default().disconnectObject(this);
+
         if (this._focused_window) {
             this._focused_window.disconnectObject(this);
         }
