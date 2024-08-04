@@ -49,6 +49,19 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         group_settings.add(row_color);
         window._settings.bind('colored-icon', row_color, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+        const adjustment_width = new Gtk.Adjustment({
+            lower: 10,
+            upper: 100,
+            step_increment: 10,
+        });
+
+        const row_width = new Adw.SpinRow({
+            title: 'Indicator width (%)',
+            adjustment: adjustment_width,
+        });
+        group_settings.add(row_width);
+        window._settings.bind('indicator-width', row_width, 'value', Gio.SettingsBindFlags.DEFAULT);
+
         const adjustment_size = new Gtk.Adjustment({
             lower: 12,
             upper: 26,
@@ -56,7 +69,7 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         });
 
         const row_size = new Adw.SpinRow({
-            title: 'Icon size',
+            title: 'Icon size (px)',
             adjustment: adjustment_size,
         });
         group_settings.add(row_size);
@@ -69,7 +82,7 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         });
 
         const row_time = new Adw.SpinRow({
-            title: 'Fade in/out time',
+            title: 'Fade in/out time (ms)',
             adjustment: adjustment_time,
         });
         group_settings.add(row_time);

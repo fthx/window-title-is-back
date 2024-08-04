@@ -177,6 +177,8 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         this._indicator._icon.set_icon_size(this._settings.get_int('icon-size'));
 
+        this._indicator.set_width(Main.panel.width * this._settings.get_int('indicator-width') * 0.004);
+
         this._indicator._on_focused_window_changed();
     }
 
