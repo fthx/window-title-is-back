@@ -23,6 +23,11 @@
         <summary>Colored icon</summary>
     </key>
 
+    <key type="i" name="indicator-width">
+        <default>80</default>
+        <summary>Indicator width</summary>
+    </key>
+
     <key type="i" name="icon-size">
         <default>16</default>
         <summary>App icon size</summary>
