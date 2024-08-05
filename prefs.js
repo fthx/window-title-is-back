@@ -49,6 +49,12 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         group_settings.add(row_color);
         window._settings.bind('colored-icon', row_color, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+        const row_fixed = new Adw.SwitchRow({
+            title: 'Fixed width',
+        });
+        group_settings.add(row_fixed);
+        window._settings.bind('fixed-width', row_fixed, 'active', Gio.SettingsBindFlags.DEFAULT);
+
         const adjustment_width = new Gtk.Adjustment({
             lower: 10,
             upper: 100,
