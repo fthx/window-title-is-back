@@ -44,7 +44,7 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         page.add(group_settings);
 
         const row_color = new Adw.SwitchRow({
-            title: 'Colored icon',
+            title: 'Colored indicator',
         });
         group_settings.add(row_color);
         window._settings.bind('colored-icon', row_color, 'active', Gio.SettingsBindFlags.DEFAULT);
