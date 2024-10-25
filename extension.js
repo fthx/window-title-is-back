@@ -53,6 +53,14 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
         // Connect the button-press-event signal
         this.connect('button-press-event', this._onButtonPressEvent.bind(this));
+
+        // Add event listener for button press
+        this.connect('button-press-event', (actor, event) => {
+            if (event.get_button() === 2) { // Middle mouse button
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
     }
 
     _fade_in() {
