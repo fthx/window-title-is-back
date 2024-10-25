@@ -3,7 +3,8 @@
   "description": "Focused window icon + app name + title + menu in the top bar.\n\n Options in preferences UI: toggle items, colored icon, icon size.",
   "name": "Window title is back",
   "shell-version": [
-    "46"
+    "46",
+    "47"
   ],
   "url": "https://github.com/fthx/window-title-is-back",
   "uuid": "window-title-is-back@fthx",
