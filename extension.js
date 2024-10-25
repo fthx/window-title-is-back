@@ -50,6 +50,9 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
         global.display.connectObject('notify::focus-window', this._on_focused_window_changed.bind(this), this);
         St.TextureCache.get_default().connectObject('icon-theme-changed', this._on_focused_window_changed.bind(this), this);
+
+        // Connect the button-press-event signal
+        this.connect('button-press-event', this._onButtonPressEvent.bind(this));
     }
 
     _fade_in() {
@@ -145,6 +148,15 @@ class WindowTitleIndicator extends PanelMenu.Button {
         this.menu = null;
 
         super.destroy();
+    }
+
+    _onButtonPressEvent(actor, event) {
+        if (event.get_button() === 2) { // Middle mouse button
+            let window = global.display.focus_window;
+            if (window) {
+                window.minimize();
+            }
+        }
     }
 });
 
