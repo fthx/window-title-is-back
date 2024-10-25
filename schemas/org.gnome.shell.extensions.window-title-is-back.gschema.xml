@@ -44,5 +44,10 @@
         <summary>Fade in/out time</summary>
     </key>
 
+    <key type="b" name="middle-click-minimize">
+        <default>true</default>
+        <summary>Enable middle-click to minimize window</summary>
+    </key>
+
     </schema>
 </schemalist>
