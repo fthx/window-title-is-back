@@ -1,6 +1,6 @@
 //    Window Title Is Back
 //    GNOME Shell extension
-//    @fthx 2023
+//    @fthx 2025
 
 
 import Clutter from 'gi://Clutter';
@@ -18,12 +18,14 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const WindowTitleIndicator = GObject.registerClass(
 class WindowTitleIndicator extends PanelMenu.Button {
-    _init() {
+    _init(settings) {
         super._init();
+
+        this._settings = settings;
 
         this._menu = new AppMenu(this);
         this.setMenu(this._menu);
-        this._menu.setSourceAlignment(0.2);
+        this._menu.setSourceAlignment(0.3);
         Main.panel.menuManager.addMenu(this._menu);
 
         this._desaturate_effect = new Clutter.DesaturateEffect();
@@ -90,13 +92,11 @@ class WindowTitleIndicator extends PanelMenu.Button {
     }
 
     _on_focused_window_changed() {
-        if (Main.sessionMode.isLocked) {
+        if (Main.sessionMode.isLocked)
             return;
-        }
 
-        if (this._focused_window) {
+        if (this._focused_window)
             this._focused_window.disconnectObject(this);
-        }
         this._focused_window = global.display.get_focus_window();
 
         if (this._focused_window &&
@@ -104,14 +104,14 @@ class WindowTitleIndicator extends PanelMenu.Button {
                     (this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG))) {
             this._sync();
 
-            this._focused_window.connectObject('notify::title', this._sync.bind(this), this);
+            if (this._settings.get_boolean('show-title'))
+                this._focused_window.connectObject('notify::title', this._sync.bind(this), this);
         }
 
         if ((!this._focused_window && !this._menu.isOpen) ||
                 (this._focused_window && this._focused_window.skip_taskbar &&
-                    this._focused_window.get_window_type() != Meta.WindowType.MODAL_DIALOG)) {
+                    this._focused_window.get_window_type() != Meta.WindowType.MODAL_DIALOG))
             this._fade_out();
-        }
     }
 
     _set_window_app() {
@@ -126,18 +126,16 @@ class WindowTitleIndicator extends PanelMenu.Button {
     }
 
     _set_window_title() {
-        if (this._focused_window) {
+        if (this._focused_window)
             this._title.set_text(this._focused_window.get_title());
-        }
     }
 
     _destroy() {
         global.display.disconnectObject(this);
         St.TextureCache.get_default().disconnectObject(this);
 
-        if (this._focused_window) {
+        if (this._focused_window)
             this._focused_window.disconnectObject(this);
-        }
         this._focused_window = null;
         this._focused_app = null;
 
@@ -155,17 +153,15 @@ export default class WindowTitleIsBackExtension extends Extension {
         this._indicator._title.visible = this._settings.get_boolean('show-title');
         this._indicator._ease_time = this._settings.get_int('ease-time');
 
-        if (this._settings.get_boolean('show-icon')) {
+        if (this._settings.get_boolean('show-icon'))
             this._indicator._icon_padding.set_text('   ');
-        } else {
+        else
             this._indicator._icon_padding.set_text('');
-        }
 
-        if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
+        if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title'))
             this._indicator._app_padding.set_text('   —   ');
-        } else {
+        else
             this._indicator._app_padding.set_text('');
-        }
 
         if (this._settings.get_boolean('colored-icon')) {
             this._indicator._icon.set_style_class_name('');
@@ -177,19 +173,19 @@ export default class WindowTitleIsBackExtension extends Extension {
 
         this._indicator._icon.set_icon_size(this._settings.get_int('icon-size'));
 
-        if (this._settings.get_boolean('fixed-width')) {
+        if (this._settings.get_boolean('fixed-width'))
             this._indicator.set_width(Main.panel.width * this._settings.get_int('indicator-width') * 0.004);
-        } else {
+        else
             this._indicator.set_width(-1);
-        }
 
         this._indicator._on_focused_window_changed();
     }
 
     enable() {
-        this._indicator = new WindowTitleIndicator();
-
         this._settings = this.getSettings();
+
+        this._indicator = new WindowTitleIndicator(this._settings);
+
         this._on_settings_changed();
         this._settings.connectObject('changed', this._on_settings_changed.bind(this), this);
 
