@@ -18,6 +18,8 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const WindowTitleIndicator = GObject.registerClass(
 class WindowTitleIndicator extends PanelMenu.Button {
+    static match_app_name_for_title = String.raw`^(.*?)(\s?(-|—)\s?app_name\s?\w?\s?((\w{0,4}\.){0,3}\d\w?)?)$`;
+    
     _init(settings) {
         super._init();
 
@@ -115,7 +117,7 @@ class WindowTitleIndicator extends PanelMenu.Button {
     }
 
     _set_window_app() {
-        this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
+        this._focused_app = this._get_focused_app();
 
         if (this._focused_app) {
             this._icon.set_gicon(this._focused_app.get_icon());
@@ -127,7 +129,34 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
     _set_window_title() {
         if (this._focused_window)
-            this._title.set_text(this._focused_window.get_title());
+            this._title.set_text(this._get_window_title());
+    }
+
+    _get_window_title() {
+        const app_name = this._get_focused_app_name();
+        const window_title = this._focused_window.get_title();
+        if (!app_name) {
+            return window_title;
+        }
+        const match_string = WindowTitleIndicator.match_app_name_for_title.replace("app_name", app_name);
+        const matches = new RegExp(match_string, "gm").exec(window_title);
+        if (matches) {
+            return matches[1];
+        }
+        return window_title;
+    }
+
+    _get_focused_app() {
+        return Shell.WindowTracker.get_default().get_window_app(this._focused_window);
+    }
+
+    _get_focused_app_name() {
+        this._focused_app = this._get_focused_app();
+
+        if (this._focused_app) {
+            return this._focused_app.get_name();
+        }
+        return null;
     }
 
     _destroy() {
