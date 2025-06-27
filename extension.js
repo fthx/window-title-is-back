@@ -43,6 +43,7 @@ class WindowTitleIndicator extends PanelMenu.Button {
 
         this._app = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._box.add_child(this._app);
+        this._set_window_app_style();
 
         this._app_padding = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._box.add_child(this._app_padding);
@@ -127,6 +128,15 @@ class WindowTitleIndicator extends PanelMenu.Button {
         }
     }
 
+    _set_window_app_style() {
+        if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
+             this._app.style = "font-weight: 900";
+        }
+        else {
+             this._app.style = "font-weight: normal";
+        }
+    }
+
     _set_window_title() {
         if (this._focused_window)
             this._title.set_text(this._get_window_title());
@@ -188,9 +198,10 @@ export default class WindowTitleIsBackExtension extends Extension {
             this._indicator._icon_padding.set_text('');
 
         if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title'))
-            this._indicator._app_padding.set_text('   —   ');
+            this._indicator._app_padding.set_text('   ');
         else
             this._indicator._app_padding.set_text('');
+        this._indicator._set_window_app_style();
 
         if (this._settings.get_boolean('colored-icon')) {
             this._indicator._icon.set_style_class_name('');
