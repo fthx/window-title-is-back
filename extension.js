@@ -9,181 +9,142 @@ import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
-import {AppMenu} from 'resource:///org/gnome/shell/ui/appMenu.js';
+import { AppMenu } from 'resource:///org/gnome/shell/ui/appMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 
 const WindowTitleIndicator = GObject.registerClass(
-class WindowTitleIndicator extends PanelMenu.Button {
-    static match_app_name_for_title = String.raw`^(.*?)(\s?(-|—)\s?app_name\s?\w?\s?((\w{0,4}\.){0,3}\d\w?)?)$`;
-    
-    _init(settings) {
-        super._init();
+    class WindowTitleIndicator extends PanelMenu.Button {
+        _init(settings) {
+            super._init();
 
-        this._settings = settings;
+            this._settings = settings;
 
-        this._menu = new AppMenu(this);
-        this.setMenu(this._menu);
-        this._menu.setSourceAlignment(0.3);
-        Main.panel.menuManager.addMenu(this._menu);
+            this._menu = new AppMenu(this);
+            this.setMenu(this._menu);
+            this._menu.setSourceAlignment(0.3);
+            Main.panel.menuManager.addMenu(this._menu);
 
-        this._desaturate_effect = new Clutter.DesaturateEffect();
+            this._desaturate_effect = new Clutter.DesaturateEffect();
 
-        this._box = new St.BoxLayout({style_class: 'panel-button'});
+            this._box = new St.BoxLayout({ style_class: 'panel-button' });
 
-        this._icon = new St.Icon({});
-        this._icon.set_fallback_gicon(null);
-        this._box.add_child(this._icon);
+            this._icon = new St.Icon({});
+            this._icon.set_fallback_gicon(null);
+            this._box.add_child(this._icon);
 
-        this._icon_padding = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._box.add_child(this._icon_padding);
+            this._icon_padding = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
+            this._box.add_child(this._icon_padding);
 
-        this._app = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._box.add_child(this._app);
-        this._set_window_app_style();
+            this._app = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
+            this._box.add_child(this._app);
 
-        this._app_padding = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._box.add_child(this._app_padding);
+            this._app_padding = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
+            this._box.add_child(this._app_padding);
 
-        this._title = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this._box.add_child(this._title);
+            this._title = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
+            this._box.add_child(this._title);
 
-        this.add_child(this._box);
+            this.add_child(this._box);
 
-        global.display.connectObject('notify::focus-window', this._on_focused_window_changed.bind(this), this);
-        St.TextureCache.get_default().connectObject('icon-theme-changed', this._on_focused_window_changed.bind(this), this);
-    }
+            global.display.connectObject('notify::focus-window', this._on_focused_window_changed.bind(this), this);
+            St.TextureCache.get_default().connectObject('icon-theme-changed', this._on_focused_window_changed.bind(this), this);
+        }
 
-    _fade_in() {
-        this.remove_all_transitions();
+        _fade_in() {
+            this.remove_all_transitions();
 
-        this.ease({
-            opacity: 255,
-            duration: this._ease_time ,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => this.show(),
-        });
-    }
+            this.ease({
+                opacity: 255,
+                duration: this._ease_time,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => this.show(),
+            });
+        }
 
-    _fade_out() {
-        this.remove_all_transitions();
+        _fade_out() {
+            this.remove_all_transitions();
 
-        this.ease({
-            opacity: 0,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            duration: this._ease_time,
-            onComplete: () => this.hide(),
-        });
-    }
+            this.ease({
+                opacity: 0,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                duration: this._ease_time,
+                onComplete: () => this.hide(),
+            });
+        }
 
-    _sync() {
-        this.remove_all_transitions();
+        _sync() {
+            this.remove_all_transitions();
 
-        this.ease({
-            opacity: 0,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            duration: this._ease_time,
-            onComplete: () => {
-                this._set_window_app();
-                this._set_window_title();
-                this._fade_in();
-            },
-        });
-    }
+            this.ease({
+                opacity: 0,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                duration: this._ease_time,
+                onComplete: () => {
+                    this._set_window_app();
+                    this._set_window_title();
+                    this._fade_in();
+                },
+            });
+        }
 
-    _on_focused_window_changed() {
-        if (Main.sessionMode.isLocked)
-            return;
+        _on_focused_window_changed() {
+            if (Main.sessionMode.isLocked)
+                return;
 
-        if (this._focused_window)
-            this._focused_window.disconnectObject(this);
-        this._focused_window = global.display.get_focus_window();
+            if (this._focused_window)
+                this._focused_window.disconnectObject(this);
+            this._focused_window = global.display.get_focus_window();
 
-        if (this._focused_window &&
+            if (this._focused_window &&
                 (!this._focused_window.skip_taskbar ||
                     (this._focused_window.get_window_type() == Meta.WindowType.MODAL_DIALOG))) {
-            this._sync();
+                this._sync();
 
-            if (this._settings.get_boolean('show-title'))
-                this._focused_window.connectObject('notify::title', this._sync.bind(this), this);
-        }
+                if (this._settings.get_boolean('show-title'))
+                    this._focused_window.connectObject('notify::title', this._sync.bind(this), this);
+            }
 
-        if ((!this._focused_window && !this._menu.isOpen) ||
+            if ((!this._focused_window && !this._menu.isOpen) ||
                 (this._focused_window && this._focused_window.skip_taskbar &&
                     this._focused_window.get_window_type() != Meta.WindowType.MODAL_DIALOG))
-            this._fade_out();
-    }
-
-    _set_window_app() {
-        this._focused_app = this._get_focused_app();
-
-        if (this._focused_app) {
-            this._icon.set_gicon(this._focused_app.get_icon());
-            this._app.set_text(this._focused_app.get_name());
-
-            this.menu.setApp(this._focused_app);
+                this._fade_out();
         }
-    }
 
-    _set_window_app_style() {
-        if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title')) {
-             this._app.style = "font-weight: 900";
+        _set_window_app() {
+            this._focused_app = Shell.WindowTracker.get_default().get_window_app(this._focused_window);
+
+            if (this._focused_app) {
+                this._icon.set_gicon(this._focused_app.get_icon());
+                this._app.set_text(this._focused_app.get_name());
+
+                this.menu.setApp(this._focused_app);
+            }
         }
-        else {
-             this._app.style = "font-weight: normal";
+
+        _set_window_title() {
+            if (this._focused_window)
+                this._title.set_text(this._focused_window.get_title());
         }
-    }
 
-    _set_window_title() {
-        if (this._focused_window)
-            this._title.set_text(this._get_window_title());
-    }
+        _destroy() {
+            global.display.disconnectObject(this);
+            St.TextureCache.get_default().disconnectObject(this);
 
-    _get_window_title() {
-        const app_name = this._get_focused_app_name();
-        const window_title = this._focused_window.get_title();
-        if (!app_name) {
-            return window_title;
+            if (this._focused_window)
+                this._focused_window.disconnectObject(this);
+            this._focused_window = null;
+            this._focused_app = null;
+
+            Main.panel.menuManager.removeMenu(this.menu);
+            this.menu = null;
+
+            super.destroy();
         }
-        const match_string = WindowTitleIndicator.match_app_name_for_title.replace("app_name", app_name);
-        const matches = new RegExp(match_string, "gm").exec(window_title);
-        if (matches) {
-            return matches[1];
-        }
-        return window_title;
-    }
-
-    _get_focused_app() {
-        return Shell.WindowTracker.get_default().get_window_app(this._focused_window);
-    }
-
-    _get_focused_app_name() {
-        this._focused_app = this._get_focused_app();
-
-        if (this._focused_app) {
-            return this._focused_app.get_name();
-        }
-        return null;
-    }
-
-    _destroy() {
-        global.display.disconnectObject(this);
-        St.TextureCache.get_default().disconnectObject(this);
-
-        if (this._focused_window)
-            this._focused_window.disconnectObject(this);
-        this._focused_window = null;
-        this._focused_app = null;
-
-        Main.panel.menuManager.removeMenu(this.menu);
-        this.menu = null;
-
-        super.destroy();
-    }
-});
+    });
 
 export default class WindowTitleIsBackExtension extends Extension {
     _on_settings_changed() {
@@ -198,10 +159,9 @@ export default class WindowTitleIsBackExtension extends Extension {
             this._indicator._icon_padding.set_text('');
 
         if (this._settings.get_boolean('show-app') && this._settings.get_boolean('show-title'))
-            this._indicator._app_padding.set_text('   ');
+            this._indicator._app_padding.set_text('   —   ');
         else
             this._indicator._app_padding.set_text('');
-        this._indicator._set_window_app_style();
 
         if (this._settings.get_boolean('colored-icon')) {
             this._indicator._icon.set_style_class_name('');
@@ -214,7 +174,7 @@ export default class WindowTitleIsBackExtension extends Extension {
         this._indicator._icon.set_icon_size(this._settings.get_int('icon-size'));
 
         if (this._settings.get_boolean('fixed-width'))
-            this._indicator.set_width(Main.panel.width * this._settings.get_int('indicator-width') * 0.004);
+            this._indicator.set_width(Main.panel.width * this._settings.get_int('width') / 100);
         else
             this._indicator.set_width(-1);
 

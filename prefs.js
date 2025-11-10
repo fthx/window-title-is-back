@@ -2,7 +2,7 @@ import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
 
-import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 
 export default class WindowTitleIsBackExtensionPreferences extends ExtensionPreferences {
@@ -56,17 +56,17 @@ export default class WindowTitleIsBackExtensionPreferences extends ExtensionPref
         window._settings.bind('fixed-width', row_fixed, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const adjustment_width = new Gtk.Adjustment({
-            lower: 10,
-            upper: 100,
-            step_increment: 10,
+            lower: 5,
+            upper: 50,
+            step_increment: 5,
         });
 
         const row_width = new Adw.SpinRow({
-            title: 'Indicator width (%)',
+            title: 'Indicator width (% of top panel)',
             adjustment: adjustment_width,
         });
         group_settings.add(row_width);
-        window._settings.bind('indicator-width', row_width, 'value', Gio.SettingsBindFlags.DEFAULT);
+        window._settings.bind('width', row_width, 'value', Gio.SettingsBindFlags.DEFAULT);
 
         const adjustment_size = new Gtk.Adjustment({
             lower: 12,
